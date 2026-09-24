@@ -1,0 +1,1393 @@
+<script>
+
+/* =========================================================
+LIVE GAME STATS
+========================================================= */
+
+function renderLiveGameStats(){
+
+  const el=
+    document.getElementById(
+      "liveGameStats"
+    );
+
+  const game=
+    games.find(
+      g=>g.id===val("playFilterGame")
+    );
+
+  if(!game){
+
+    el.innerHTML=
+      `<div class="empty">
+        Choose a game to view live stats.
+      </div>`;
+
+    return;
+  }
+
+
+  const playIds=
+    new Set(
+      plays
+        .filter(
+          p=>p.gameId===game.id
+        )
+        .map(p=>p.id)
+    );
+
+
+  const gameStats=
+    stats.filter(
+      s=>
+        s.playId &&
+        playIds.has(s.playId)
+    );
+
+
+  const byPlayer={};
+
+
+  gameStats.forEach(s=>{
+
+    if(!byPlayer[s.playerId]){
+      byPlayer[s.playerId]={};
+    }
+
+    byPlayer[s.playerId][s.type]=
+      (byPlayer[s.playerId][s.type]||0)+
+      Number(s.value||0);
+
+  });
+
+
+  const rows=
+    Object.entries(byPlayer)
+      .map(([pid,agg])=>{
+
+        const p=
+          players.find(
+            x=>x.id===pid
+          );
+
+
+        return `
+
+          <div class="live-stat playercard">
+
+            <h4>
+              ${esc(
+                p?.name ||
+                playerName(pid)
+              )}
+            </h4>
+
+            <div class="muted small">
+
+              ${esc(
+                teamName(
+                  p?.teamId||""
+                )
+              )}
+
+              •
+              ${esc(
+                p?.position||""
+              )}
+
+            </div>
+
+
+            ${
+              Object.entries(agg)
+                .filter(
+                  ([,v])=>v!==0
+                )
+                .map(
+                  ([type,value])=>`
+
+                    <div class="stat-line">
+
+                      <span>
+                        ${esc(
+                          STAT_LABELS[type]||
+                          type
+                        )}
+                      </span>
+
+                      <b>
+                        ${esc(
+                          formatStatValue(
+                            type,
+                            value
+                          )
+                        )}
+                      </b>
+
+                    </div>
+
+                  `
+                )
+                .join("")
+            }
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+
+  el.innerHTML=`
+
+    <div class="notice">
+
+      <b>
+
+        ${esc(teamName(game.awayId))}
+        ${Number(game.awayScore||0)}
+
+        —
+
+        ${Number(game.homeScore||0)}
+        ${esc(teamName(game.homeId))}
+
+      </b>
+
+      <div class="muted small">
+
+        ${esc(game.status||"")}
+
+        •
+
+        ${esc(game.date||"")}
+
+      </div>
+
+    </div>
+
+
+    ${
+      rows ||
+      `<div class="empty">
+        No automatic stats recorded
+        for this game yet.
+      </div>`
+    }
+
+  `;
+
+}
+
+
+/* =========================================================
+PLAY PAGE
+========================================================= */
+
+function renderPlayPage(){
+
+  populateGameSelect(
+    "playFilterGame",
+    val("playFilterSeason"),
+    true
+  );
+
+
+  renderLiveGameStats();
+
+
+  const seasonId=
+    val("playFilterSeason");
+
+  const gameId=
+    val("playFilterGame");
+
+
+  const list=
+    plays
+      .filter(p=>
+
+        (!seasonId ||
+         p.seasonId===seasonId) &&
+
+        (!gameId ||
+         p.gameId===gameId)
+
+      )
+      .slice()
+      .sort(
+        (a,b)=>
+          (Number(b.createdAt)||0)-
+          (Number(a.createdAt)||0)
+      );
+
+
+  const el=
+    document.getElementById(
+      "playList"
+    );
+
+
+  if(!list.length){
+
+    el.innerHTML=
+      `<div class="empty">
+        No plays recorded.
+      </div>`;
+
+    return;
+  }
+
+
+  el.innerHTML=
+    list.map(p=>{
+
+      const g=
+        games.find(
+          x=>x.id===p.gameId
+        );
+
+      const label=
+        g
+        ?
+        gameLabel(g)
+        :
+        "Unknown Game";
+
+
+      return `
+
+        <div class="playercard">
+
+          <div class="muted small">
+
+            ${esc(label)}
+
+            •
+
+            ${esc(
+              teamName(p.teamId)
+            )}
+
+          </div>
+
+
+          <h4>
+
+            ${esc(p.down||"")}
+
+            &nbsp;
+
+            ${esc(p.type||"")}
+
+            &nbsp;
+
+            <span class="pill">
+              ${esc(p.result||"")}
+            </span>
+
+          </h4>
+
+
+          <div>
+
+            <b>
+              ${esc(
+                playerName(p.playerId)
+              )}
+            </b>
+
+            ${
+              p.playerId2
+              ?
+              `
+                →
+
+                <b>
+                  ${esc(
+                    playerName(
+                      p.playerId2
+                    )
+                  )}
+                </b>
+              `
+              :
+              ""
+            }
+
+            •
+
+            ${Number(p.yards||0)}
+            yards
+
+          </div>
+
+
+          ${
+            p.description
+            ?
+            `
+              <div class="muted small">
+                ${esc(p.description)}
+              </div>
+            `
+            :
+            ""
+          }
+
+        </div>
+
+      `;
+
+    })
+    .join("");
+
+}
+
+
+/* =========================================================
+STATS PAGE
+========================================================= */
+
+function renderStats(){
+
+  const seasonId=
+    val("statsFilterSeason");
+
+  const teamId=
+    val("statsFilterTeam");
+
+
+  const list=
+    players.filter(p=>
+
+      (!seasonId ||
+       p.seasonId===seasonId) &&
+
+      (!teamId ||
+       p.teamId===teamId)
+
+    );
+
+
+  const container=
+    document.getElementById(
+      "statsList"
+    );
+
+
+  const cards=[];
+
+
+  list.forEach(p=>{
+
+    const agg=
+      aggregatePlayerStats(
+        p.id,
+        seasonId,
+        teamId
+      );
+
+
+    const entries=
+      Object.entries(agg)
+        .filter(
+          ([,v])=>v!==0
+        );
+
+
+    if(!entries.length){
+      return;
+    }
+
+
+    entries.sort(
+      (a,b)=>
+        (
+          STAT_LABELS[a[0]]||
+          a[0]
+        ).localeCompare(
+          STAT_LABELS[b[0]]||
+          b[0]
+        )
+    );
+
+
+    cards.push(`
+
+      <div class="playercard">
+
+        <h4>
+
+          ${esc(p.name)}
+
+          <span class="pill">
+            ${esc(p.position||"")}
+          </span>
+
+        </h4>
+
+
+        <div class="muted small">
+
+          ${esc(teamName(p.teamId))}
+
+          •
+
+          #${esc(p.number||"")}
+
+        </div>
+
+
+        ${
+          entries.map(
+            ([type,value])=>`
+
+              <div class="stat-line">
+
+                <span>
+                  ${esc(
+                    STAT_LABELS[type]||
+                    type
+                  )}
+                </span>
+
+                <b>
+                  ${esc(
+                    formatStatValue(
+                      type,
+                      value
+                    )
+                  )}
+                </b>
+
+              </div>
+
+            `
+          ).join("")
+        }
+
+      </div>
+
+    `);
+
+  });
+
+
+  container.innerHTML=
+    cards.length
+    ?
+    cards.join("")
+    :
+    `<div class="empty">
+      No statistics recorded yet.
+    </div>`;
+
+}
+
+
+/* =========================================================
+AUTOMATIC BEST LINEUP
+========================================================= */
+
+const LINEUP_COUNTS={
+
+  QB:1,
+  RB:2,
+  WR:3,
+  TE:1,
+  OL:5,
+
+  DL:4,
+  LB:3,
+  DB:4,
+
+  K:1,
+  P:1,
+  RET:1
+
+};
+
+
+/* =========================================================
+POSITION GROUP
+========================================================= */
+
+function positionGroup(position){
+
+  const p=
+    String(position||"")
+      .toUpperCase()
+      .replace(/[^A-Z]/g,"");
+
+
+  if(
+    p==="QB" ||
+    p.includes("QUARTERBACK")
+  ){
+    return "QB";
+  }
+
+
+  if(
+    ["RB","HB","FB"].includes(p) ||
+    p.includes("RUNNINGBACK") ||
+    p.includes("HALFBACK") ||
+    p.includes("FULLBACK")
+  ){
+    return "RB";
+  }
+
+
+  if(
+    ["WR","W"].includes(p) ||
+    p.includes("WIDERECEIVER")
+  ){
+    return "WR";
+  }
+
+
+  if(
+    p==="TE" ||
+    p.includes("TIGHTEND")
+  ){
+    return "TE";
+  }
+
+
+  if(
+    ["OT","T","OG","G","C","OL"].includes(p) ||
+    p.includes("OFFENSIVETACKLE") ||
+    p.includes("OFFENSIVEGUARD") ||
+    p.includes("CENTER") ||
+    p.includes("OFFENSIVELINE")
+  ){
+    return "OL";
+  }
+
+
+  if(
+    ["DE","DT","NT","DL"].includes(p) ||
+    p.includes("DEFENSIVEEND") ||
+    p.includes("DEFENSIVETACKLE") ||
+    p.includes("NOSETACKLE") ||
+    p.includes("DEFENSIVELINE")
+  ){
+    return "DL";
+  }
+
+
+  if(
+    ["OLB","MLB","ILB","LB"].includes(p) ||
+    p.includes("LINEBACKER")
+  ){
+    return "LB";
+  }
+
+
+  if(
+    ["CB","S","DB","FS","SS"].includes(p) ||
+    p.includes("CORNERBACK") ||
+    p.includes("SAFETY") ||
+    p.includes("DEFENSIVEBACK")
+  ){
+    return "DB";
+  }
+
+
+  if(
+    p==="K" ||
+    p.includes("KICKER")
+  ){
+    return "K";
+  }
+
+
+  if(
+    p==="P" ||
+    p.includes("PUNTER")
+  ){
+    return "P";
+  }
+
+
+  if(
+    ["KR","PR"].includes(p) ||
+    p.includes("RETURNER")
+  ){
+    return "RET";
+  }
+
+
+  return "OTHER";
+
+}
+
+
+/* =========================================================
+LINEUP PLAYER SCORE
+========================================================= */
+
+function playerScoreForGroup(
+  p,
+  agg,
+  group
+){
+
+  const n=
+    k=>Number(agg[k]||0);
+
+
+  switch(group){
+
+    case "QB":
+
+      return
+        n("pass_yds")*.01 +
+        n("pass_td")*6 +
+        n("rush_yds")*.03 +
+        n("rush_td")*6 -
+        n("pass_int")*4 +
+        n("completions")*.05;
+
+
+    case "RB":
+
+      return
+        n("rush_yds")*.08 +
+        n("rush_td")*6 +
+        n("rec")*.5 +
+        n("rec_yds")*.04 +
+        n("rec_td")*6;
+
+
+    case "WR":
+
+    case "TE":
+
+      return
+        n("rec")*.5 +
+        n("rec_yds")*.05 +
+        n("rec_td")*6 +
+        n("rush_yds")*.03 +
+        n("rush_td")*6;
+
+
+    case "OL":
+
+      return
+        n("pancakes")*2 +
+        n("ol_grade")*.1;
+
+
+    case "K":
+
+      return
+        n("fgm")*3 +
+        n("xpm") -
+        (
+          n("fga")-
+          n("fgm")
+        )*2;
+
+
+    case "P":
+
+      return
+        n("punt")*.2 +
+        n("punt_yds")*.01 +
+        (
+          n("punt")
+          ?
+          n("punt_yds")/
+          n("punt")*5
+          :
+          0
+        );
+
+
+    case "RET":
+
+      return
+        n("ret_yds")*.04 +
+        n("ret_td")*6;
+
+
+    case "DL":
+
+      return
+        n("tackles") +
+        n("tfl")*2 +
+        n("sacks")*5 +
+        n("ff")*2 +
+        n("fr")*3 +
+        n("def_int")*6;
+
+
+    case "LB":
+
+      return
+        n("tackles") +
+        n("tfl")*2 +
+        n("sacks")*4 +
+        n("def_int")*6 +
+        n("ff")*2 +
+        n("fr")*3;
+
+
+    case "DB":
+
+      return
+        n("tackles")*.75 +
+        n("def_int")*7 +
+        n("pd")*2 +
+        n("ff")*2 +
+        n("fr")*3;
+
+
+    default:
+
+      return
+        n("td") +
+        n("tackles") +
+        n("rush_yds")*.03 +
+        n("rec_yds")*.03 +
+        n("pass_yds")*.005;
+
+  }
+
+}
+
+
+/* =========================================================
+RENDER LINEUP
+========================================================= */
+
+function renderLineup(){
+
+  const seasonId=
+    val("lineupSeason");
+
+  const teamId=
+    val("lineupTeam");
+
+
+  const container=
+    document.getElementById(
+      "lineupList"
+    );
+
+
+  if(!seasonId || !teamId){
+
+    container.innerHTML=
+      `<div class="empty">
+        Choose a season and team.
+      </div>`;
+
+    return;
+  }
+
+
+  const eligible=
+    players.filter(p=>
+
+      p.seasonId===seasonId &&
+      p.teamId===teamId
+
+    );
+
+
+  const html=[];
+
+
+  Object.entries(
+    LINEUP_COUNTS
+  ).forEach(
+    ([group,count])=>{
+
+
+      const candidates=
+        eligible
+          .filter(
+            p=>
+              positionGroup(
+                p.position
+              )===group
+          )
+          .map(p=>{
+
+            const agg=
+              aggregatePlayerStats(
+                p.id,
+                seasonId,
+                teamId
+              );
+
+
+            return {
+
+              p:p,
+
+              agg:agg,
+
+              score:
+                playerScoreForGroup(
+                  p,
+                  agg,
+                  group
+                )
+
+            };
+
+          })
+          .sort(
+            (a,b)=>
+              b.score-a.score
+          );
+
+
+      const selected=
+        candidates.slice(0,count);
+
+
+      selected.forEach(
+        (item,index)=>{
+
+          const entries=
+            Object.entries(
+              item.agg
+            )
+            .filter(
+              ([,v])=>v!==0
+            )
+            .slice(0,5);
+
+
+          html.push(`
+
+            <div class="playercard">
+
+              <h4>
+
+                ${group}
+                ${index+1}
+
+                —
+
+                ${esc(item.p.name)}
+
+              </h4>
+
+
+              <div class="muted small">
+
+                #${esc(item.p.number||"")}
+
+                •
+
+                ${esc(item.p.position||"")}
+
+                •
+
+                Score
+                ${item.score.toFixed(2)}
+
+              </div>
+
+
+              ${
+                entries.length
+                ?
+                entries.map(
+                  ([type,value])=>`
+
+                    <div class="stat-line">
+
+                      <span>
+                        ${esc(
+                          STAT_LABELS[type]||
+                          type
+                        )}
+                      </span>
+
+                      <b>
+                        ${esc(
+                          formatStatValue(
+                            type,
+                            value
+                          )
+                        )}
+                      </b>
+
+                    </div>
+
+                  `
+                ).join("")
+                :
+                `
+                  <div class="empty">
+                    No stats yet.
+                  </div>
+                `
+              }
+
+            </div>
+
+          `);
+
+        });
+
+
+      if(!selected.length){
+
+        html.push(`
+
+          <div class="playercard">
+
+            <h4>
+              ${group}
+            </h4>
+
+            <div class="muted">
+
+              No eligible players
+              recorded at this position.
+
+            </div>
+
+          </div>
+
+        `);
+
+      }
+
+    }
+  );
+
+
+  container.innerHTML=
+    html.join("");
+
+}
+
+
+/* =========================================================
+ACCOMPLISHMENTS
+========================================================= */
+
+function renderAccomplishments(){
+
+  const seasonId=
+    val("accFilterSeason");
+
+  const teamId=
+    val("accFilterTeam");
+
+
+  const list=
+    accomplishments
+      .filter(a=>
+
+        (!seasonId ||
+         a.seasonId===seasonId) &&
+
+        (!teamId ||
+         a.teamId===teamId)
+
+      )
+      .slice()
+      .sort(
+        (a,b)=>
+          String(a.title)
+            .localeCompare(
+              String(b.title)
+            )
+      );
+
+
+  const el=
+    document.getElementById(
+      "accomplishmentList"
+    );
+
+
+  if(!list.length){
+
+    el.innerHTML=
+      `<div class="empty">
+        No accomplishments found.
+      </div>`;
+
+    return;
+  }
+
+
+  el.innerHTML=
+    list.map(a=>`
+
+      <div class="playercard">
+
+        <h4>
+          ${esc(a.title)}
+        </h4>
+
+
+        <div class="muted small">
+
+          ${esc(
+            playerName(a.playerId)
+          )}
+
+          •
+
+          ${esc(
+            teamName(a.teamId)
+          )}
+
+          •
+
+          ${esc(a.type||"")}
+
+        </div>
+
+
+        ${
+          a.description
+          ?
+          `
+            <p>
+              ${esc(a.description)}
+            </p>
+          `
+          :
+          ""
+        }
+
+
+        <div class="actions">
+
+          <button
+            class="btn-danger"
+            onclick="
+              deleteItem(
+                'accomplishment',
+                '${a.id}'
+              )
+            "
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+PLAYER AWARDS
+========================================================= */
+
+function renderAwards(){
+
+  const seasonId=
+    val("awardFilterSeason");
+
+  const teamId=
+    val("awardFilterTeam");
+
+
+  const list=
+    awards
+      .filter(a=>
+
+        (!seasonId ||
+         a.seasonId===seasonId) &&
+
+        (!teamId ||
+         a.teamId===teamId)
+
+      )
+      .slice()
+      .sort(
+        (a,b)=>
+          String(a.name)
+            .localeCompare(
+              String(b.name)
+            )
+      );
+
+
+  const el=
+    document.getElementById(
+      "awardList"
+    );
+
+
+  if(!list.length){
+
+    el.innerHTML=
+      `<div class="empty">
+        No awards found.
+      </div>`;
+
+    return;
+  }
+
+
+  el.innerHTML=
+    list.map(a=>`
+
+      <div class="playercard award">
+
+        <h4>
+
+          🏆 ${esc(a.name)}
+
+        </h4>
+
+
+        <div class="pill">
+
+          ${esc(
+            a.category||
+            "Other"
+          )}
+
+        </div>
+
+
+        <div class="muted small">
+
+          ${esc(
+            playerName(
+              a.playerId
+            )
+          )}
+
+          •
+
+          ${esc(
+            teamName(
+              a.teamId
+            )
+          )}
+
+          •
+
+          ${esc(
+            seasonName(
+              a.seasonId
+            )
+          )}
+
+        </div>
+
+
+        ${
+          a.description
+          ?
+          `
+            <p>
+              ${esc(
+                a.description
+              )}
+            </p>
+          `
+          :
+          ""
+        }
+
+
+        <div class="actions">
+
+          <button
+            class="btn-danger"
+            onclick="
+              deleteAward(
+                '${a.id}'
+              )
+            "
+          >
+            Delete Award
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+DELETE AWARD
+========================================================= */
+
+function deleteAward(id){
+
+  if(
+    !confirm(
+      "Delete this player award?"
+    )
+  ){
+
+    return;
+
+  }
+
+
+  pushUndo();
+
+
+  awards=
+    awards.filter(
+      a=>a.id!==id
+    );
+
+
+  save();
+  renderAll();
+
+}
+
+
+/* =========================================================
+SEASON ARCHIVE
+========================================================= */
+
+function renderArchive(){
+
+  const seasonId=
+    val("archiveSeason");
+
+
+  const el=
+    document.getElementById(
+      "archiveContent"
+    );
+
+
+  if(!seasonId){
+
+    el.innerHTML=
+      `<div class="empty">
+        Choose a season.
+      </div>`;
+
+    return;
+  }
+
+
+  const season=
+    seasons.find(
+      s=>s.id===seasonId
+    );
+
+
+  if(!season){
+
+    el.innerHTML=
+      `<div class="empty">
+        Season not found.
+      </div>`;
+
+    return;
+  }
+
+
+  const seasonGames=
+    games.filter(
+      g=>g.seasonId===seasonId
+    );
+
+
+  const seasonPlayers=
+    players.filter(
+      p=>p.seasonId===seasonId
+    );
+
+
+  const seasonStats=
+    stats.filter(
+      s=>s.seasonId===seasonId
+    );
+
+
+  const seasonAcc=
+    accomplishments.filter(
+      a=>a.seasonId===seasonId
+    );
+
+
+  const seasonAwards=
+    awards.filter(
+      a=>a.seasonId===seasonId
+    );
+
+
+  const seasonTeamIds=
+    new Set();
+
+
+  seasonPlayers.forEach(
+    p=>seasonTeamIds.add(
+      p.teamId
+    )
+  );
+
+
+  seasonGames.forEach(
+    g=>{
+
+      seasonTeamIds.add(
+        g.homeId
+      );
+
+      seasonTeamIds.add(
+        g.awayId
+      );
+
+    }
+  );
+
+
+  const playerTotals=
+    seasonPlayers
+      .map(p=>{
+
+        const agg=
+          aggregatePlayerStats(
+            p.id,
+            seasonId,
+            p.teamId
+          );
+
+
+        const yards=
+          Number(
+            agg.pass_yds||0
+          )+
+          Number(
+            agg.rush_yds||0
+          )+
+          Number(
+            agg.rec_yds||0
+          );
+
+
+        const tds=
+          Number(
+            agg.pass_td||0
+          )+
+          Number(
+     </script>
+
+</body>
+</html>

@@ -1,1 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07111f">
 
+<title>CFB Stat Tracker</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#07111f;
+  color:white;
+}
+
+header{
+  background:#0d1b2a;
+  padding:18px;
+  text-align:center;
+  border-bottom:1px solid #24364a;
+}
+
+header h1{
+  margin:0;
+  font-size:24px;
+}
+
+nav{
+  display:flex;
+  overflow-x:auto;
+  background:#0a1624;
+  border-bottom:1px solid #24364a;
+}
+
+nav button{
+  flex:1;
+  min-width:90px;
+  padding:14px 8px;
+  border:0;
+  background:none;
+  color:#aaa;
+  font-weight:bold;
+}
+
+nav button.active{
+  color:white;
+  background:#16283c;
+}
+
+main{
+  padding:15px;
+  max-width:900px;
+  margin:auto;
+}
+
+.page{display:none}
+.page.active{display:block}
+
+.card{
+  background:#0d1b2a;
+  border:1px solid #24364a;
+  border-radius:12px;
+  padding:15px;
+  margin-bottom:15px;
+}
+
+input,select{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border-radius:8px;
+  border:1px solid #34495e;
+  background:#07111f;
+  color:white;
+}
+
+button.action{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border:0;
+  border-radius:8px;
+  background:#1769aa;
+  color:white;
+  font-weight:bold;
+}
+
+button.delete{
+  background:#9b2226;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.stat{
+  background:#14263a;
+  border-radius:10px;
+  padding:15px;
+  text-align:center;
+}
+
+.stat strong{
+  display:block;
+  font-size:25px;
+}
+
+.team{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:#14263a;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+}
+
+.logo{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  object-fit:contain;
+  background:white;
+  padding:5px;
+}
+
+.logoFallback{
+  width:55px;
+  height:55px;
+  border-radius:50%;
+  background:#1769aa;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.teamInfo{
+  flex:1;
+}
+
+.teamInfo strong{
+  display:block;
+  font-size:17px;
+}
+
+.player{
+  background:#14263a;
+  padding:12px;
+  border-radius:10px;
+  margin:8px 0;
+}
+
+.playerHeader{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.number{
+  font-size:24px;
+  font-weight:bold;
+  width:45px;
+}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  background:#243b53;
+  border-radius:20px;
+  font-size:12px;
+  margin:3px 3px 0 0;
+}
+
+.game{
+  background:#14263a;
+  padding:15px;
+  border-radius:10px;
+  margin:8px 0;
+}
+
+.score{
+  font-size:24px;
+  font-weight:bold;
+  text-align:center;
+  margin:10px;
+}
+
+.empty{
+  text-align:center;
+  color:#8b9aaa;
+  padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🏈 CFB Stat Tracker</h1>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('home',this)">Home</button>
+  <button onclick="showPage('seasons',this)">Seasons</button>
+  <button onclick="showPage('teams',this)">Teams</button>
+  <button onclick="showPage('roster',this)">Roster</button>
+  <button onclick="showPage('games',this)">Games</button>
+  <button onclick="showPage('stats',this)">Stats</button>
+</nav>
+
+<main>
+
+<!-- HOME -->
+<section id="home" class="page active">
+
+<div class="card">
+<h2>Dashboard</h2>
+
+<div class="grid">
+<div class="stat">
+<strong id="seasonCount">0</strong>
+Seasons
+</div>
+
+<div class="stat">
+<strong id="teamCount">0</strong>
+Teams
+</div>
+
+<div class="stat">
+<strong id="playerCount">0</strong>
+Players
+</div>
+
+<div class="stat">
+<strong id="gameCount">0</strong>
+Games
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Current Season</h2>
+<div id="currentSeason" class="empty">
+No season created yet.
+</div>
+</div>
+
+</section>
+
+
+<!-- SEASONS -->
+<section id="seasons" class="page">
+
+<div class="card">
+<h2>➕ Add Season</h2>
+
+<input id="seasonName" placeholder="Season name (Example: 2026)">
+
+<button class="action" onclick="addSeason()">
+Add Season
+</button>
+</div>
+
+<div class="card">
+<h2>Seasons</h2>
+<div id="seasonList"></div>
+</div>
+
+</section>
+
+
+<!-- TEAMS -->
+<section id="teams" class="page">
+
+<div class="card">
+<h2>➕ Add Team</h2>
+
+<input id="teamName" placeholder="Team name">
+
+<input id="teamShort" placeholder="Short name (Example: NDSU)">
+
+<input id="teamLogo" placeholder="Logo image URL">
+
+<input id="teamConference" placeholder="Conference">
+
+<select id="teamLevel">
+<option>FBS</option>
+<option>FCS</option>
+<option>Division II</option>
+<option>Division III</option>
+</select>
+
+<input id="teamColor" placeholder="Primary color">
+
+<button class="action" onclick="addTeam()">
+Add Team
+</button>
+</div>
+
+<div class="card">
+<h2>Teams</h2>
+<div id="teamList"></div>
+</div>
+
+</section>
+
+
+<!-- ROSTER -->
+<section id="roster" class="page">
+
+<div class="card">
+<h2>➕ Add Player</h2>
+
+<select id="playerTeam">
+<option value="">Select Team</option>
+</select>
+
+<input id="playerNumber" placeholder="Jersey #" type="number">
+
+<input id="playerName" placeholder="Player name">
+
+<select id="playerPosition">
+<option value="">Position</option>
+<option>QB</option>
+<option>RB</option>
+<option>FB</option>
+<option>WR</option>
+<option>TE</option>
+<option>OL</option>
+<option>DL</option>
+<option>DE</option>
+<option>DT</option>
+<option>LB</option>
+<option>CB</option>
+<option>S</option>
+<option>K</option>
+<option>P</option>
+<option>LS</option>
+</select>
+
+<select id="playerClass">
+<option>Freshman</option>
+<option>Sophomore</option>
+<option>Junior</option>
+<option>Senior</option>
+<option>Graduate</option>
+</select>
+
+<input id="playerHeight" placeholder="Height (Example: 6'2)">
+
+<input id="playerWeight" placeholder="Weight (Example: 215)">
+
+<input id="playerHometown" placeholder="Hometown">
+
+<input id="playerPrevious" placeholder="Previous school">
+
+<button class="action" onclick="addPlayer()">
+Add Player
+</button>
+</div>
+
+<div class="card">
+<h2>Roster</h2>
+<div id="rosterList"></div>
+</div>
+
+</section>
+
+
+<!-- GAMES -->
+<section id="games" class="page">
+
+<div class="card">
+<h2>➕ Add Game</h2>
+
+<select id="gameSeason">
+<option value="">Select Season</option>
+</select>
+
+<select id="homeTeam">
+<option value="">Home Team</option>
+</select>
+
+<select id="awayTeam">
+<option value="">Away Team</option>
+</select>
+
+<input id="gameDate" type="date">
+
+<input id="gameTime" type="time">
+
+<input id="gameWeek" placeholder="Week">
+
+<input id="gameVenue" placeholder="Venue">
+
+<button class="action" onclick="addGame()">
+Add Game
+</button>
+</div>
+
+<div class="card">
+<h2>Schedule</h2>
+<div id="gameList"></div>
+</div>
+
+</section>
+
+
+<!-- STATS -->
+<section id="stats" class="page">
+
+<div class="card">
+<h2>📊 Statistics</h2>
+
+<div class="grid">
+
+<div class="stat">
+<strong id="passingYards">0</strong>
+Passing Yards
+</div>
+
+<div class="stat">
+<strong id="rushingYards">0</strong>
+Rushing Yards
+</div>
+
+<div class="stat">
+<strong id="receivingYards">0</strong>
+Receiving Yards
+</div>
+
+<div class="stat">
+<strong id="tackles">0</strong>
+Tackles
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h2>Stat Entry</h2>
+
+<select id="statPlayer">
+<option value="">Select Player</option>
+</select>
+
+<select id="statType">
+<option>Passing</option>
+<option>Rushing</option>
+<option>Receiving</option>
+<option>Tackle</option>
+<option>Sack</option>
+<option>Interception</option>
+<option>Fumble Recovery</option>
+</select>
+
+<input id="statValue" type="number" placeholder="Yards / amount">
+
+<button class="action" onclick="addStat()">
+Add Stat
+</button>
+</div>
+
+<div class="card">
+<h2>Stat Log</h2>
+<div id="statLog"></div>
+</div>
+
+</section>
+
+</main>
+
+<script>
+
+let seasons = JSON.parse(localStorage.getItem("cfbSeasons") || "[]");
+let teams = JSON.parse(localStorage.getItem("cfbTeams") || "[]");
+let players = JSON.parse(localStorage.getItem("cfbPlayers") || "[]");
+let games = JSON.parse(localStorage.getItem("cfbGames") || "[]");
+let stats = JSON.parse(localStorage.getItem("cfbStats") || "[]");
+
+
+function save(){
+
+localStorage.setItem("cfbSeasons",JSON.stringify(seasons));
+localStorage.setItem("cfbTeams",JSON.stringify(teams));
+localStorage.setItem("cfbPlayers",JSON.stringify(players));
+localStorage.setItem("cfbGames",JSON.stringify(games));
+localStorage.setItem("cfbStats",JSON.stringify(stats));
+
+render();
+
+}
+
+
+function showPage(page,button){
+
+document.querySelectorAll(".page").forEach(p=>{
+p.classList.remove("active");
+});
+
+document.getElementById(page).classList.add("active");
+
+document.querySelectorAll("nav button").forEach(b=>{
+b.classList.remove("active");
+});
+
+button.classList.add("active");
+
+}
+
+
+function addSeason(){
+
+let name=document.getElementById("seasonName").value.trim();
+
+if(!name){
+alert("Enter a season name.");
+return;
+}
+
+seasons.push({
+id:Date.now(),
+name:name
+});
+
+document.getElementById("seasonName").value="";
+
+save();
+
+}
+
+
+function addTeam(){
+
+let name=document.getElementById("teamName").value.trim();
+
+if(!name){
+alert("Enter a team name.");
+return;
+}
+
+teams.push({
+id:Date.now(),
+name:name,
+short:document.getElementById("teamShort").value,
+logo:document.getElementById("teamLogo").value,
+conference:document.getElementById("teamConference").value,
+level:document.getElementById("teamLevel").value,
+color:document.getElementById("teamColor").value
+});
+
+document.getElementById("teamName").value="";
+document.getElementById("teamShort").value="";
+document.getElementById("teamLogo").value="";
+document.getElementById("teamConference").value="";
+document.getElementById("teamColor").value="";
+
+save();
+
+}
+
+
+function addPlayer(){
+
+let name=document.getElementById("playerName").value.trim();
+let team=document.getElementById("playerTeam").value;
+
+if(!name || !team){
+alert("Enter a player name and select a team.");
+return;
+}
+
+players.push({
+id:Date.now(),
+teamId:Number(team),
+number:document.getElementById("playerNumber").value,
+name:name,
+position:document.getElementById("playerPosition").value,
+classYear:document.getElementById("playerClass").value,
+height:document.getElementById("playerHeight").value,
+weight:document.getElementById("playerWeight").value,
+hometown:document.getElementById("playerHometown").value,
+previous:document.getElementById("playerPrevious").value
+});
+
+document.getElementById("playerName").value="";
+document.getElementById("playerNumber").value="";
+document.getElementById("playerHeight").value="";
+document.getElementById("playerWeight").value="";
+document.getElementById("playerHometown").value="";
+document.getElementById("playerPrevious").value="";
+
+save();
+
+}
+
+
+function addGame(){
+
+let season=document.getElementById("gameSeason").value;
+let home=document.getElementById("homeTeam").value;
+let away=document.getElementById("awayTeam").value;
+
+if(!season || !home || !away){
+alert("Select a season and both teams.");
+return;
+}
+
+if(home===away){
+alert("Home and away teams cannot be the same.");
+return;
+}
+
+games.push({
+id:Date.now(),
+seasonId:Number(season),
+homeId:Number(home),
+awayId:Number(away),
+date:document.getElementById("gameDate").value,
+time:document.getElementById("gameTime").value,
+week:document.getElementById("gameWeek").value,
+venue:document.getElementById("gameVenue").value,
+homeScore:0,
+awayScore:0
+});
+
+save();
+
+}
+
+
+function addStat(){
+
+let player=document.getElementById("statPlayer").value;
+let type=document.getElementById("statType").value;
+let value=Number(document.getElementById("statValue").value);
+
+if(!player || !value){
+alert("Select a player and enter a value.");
+return;
+}
+
+stats.push({
+id:Date.now(),
+playerId:Number(player),
+type:type,
+value:value
+});
+
+document.getElementById("statValue").value="";
+
+save();
+
+}
+
+
+function deleteItem(type,id){
+
+if(!confirm("Delete this item?")) return;
+
+if(type==="season")
+seasons=seasons.filter(x=>x.id!==id);
+
+if(type==="team")
+teams=teams.filter(x=>x.id!==id);
+
+if(type==="player")
+players=players.filter(x=>x.id!==id);
+
+if(type==="game")
+games=games.filter(x=>x.id!==id);
+
+save();
+
+}
+
+
+function render(){
+
+document.getElementById("seasonCount").textContent=seasons.length;
+document.getElementById("teamCount").textContent=teams.length;
+document.getElementById("playerCount").textContent=players.length;
+document.getElementById("gameCount").textContent=games.length;
+
+
+let seasonList=document.getElementById("seasonList");
+
+seasonList.innerHTML="";
+
+if(seasons.length===0){
+
+seasonList.innerHTML='<div class="empty">No seasons yet.</div>';
+
+}else{
+
+seasons.forEach(s=>{
+
+seasonList.innerHTML+=`
+<div class="team">
+<div class="logoFallback">🏈</div>
+<div class="teamInfo">
+<strong>${s.name}</strong>
+</div>
+<button class="action delete" onclick="deleteItem('season',${s.id})">Delete</button>
+</div>
+`;
+
+});
+
+}
+
+
+let current=seasons.length ? seasons[seasons.length-1].name : "No season created yet.";
+
+document.getElementById("currentSeason").textContent=current;
+
+
+let teamList=document.getElementById("teamList");
+
+teamList.innerHTML="";
+
+if(teams.length===0){
+
+teamList.innerHTML='<div class="empty">No teams yet.</div>';
+
+}else{
+
+teams.forEach(t=>{
+
+let logo=t.logo
+? `<img class="logo" src="${t.logo}" onerror="this.style.display='none'">`
+: `<div class="logoFallback">${(t.short||t.name).substring(0,3).toUpperCase()}</div>`;
+
+teamList.innerHTML+=`
+<div class="team">
+
+${logo}
+
+<div class="teamInfo">
+<strong>${t.name}</strong>
+<span class="badge">${t.short||"N/A"}</span>
+<span class="badge">${t.level}</span>
+<span class="badge">${t.conference||"Independent"}</span>
+</div>
+
+<button class="action delete" onclick="deleteItem('team',${t.id})">
+Delete
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+
+let playerTeam=document.getElementById("playerTeam");
+
+playerTeam.innerHTML='<option value="">Select Team</option>';
+
+teams.forEach(t=>{
+playerTeam.innerHTML+=`
+<option value="${t.id}">${t.name}</option>
+`;
+});
+
+
+let rosterList=document.getElementById("rosterList");
+
+rosterList.innerHTML="";
+
+if(players.length===0){
+
+rosterList.innerHTML='<div class="empty">No players yet.</div>';
+
+}else{
+
+players.forEach(p=>{
+
+let team=teams.find(t=>t.id===p.teamId);
+
+rosterList.innerHTML+=`
+<div class="player">
+
+<div class="playerHeader">
+
+<div class="number">#${p.number||"—"}</div>
+
+<div>
+<strong>${p.name}</strong><br>
+<span class="badge">${p.position||"Position N/A"}</span>
+<span class="badge">${p.classYear}</span>
+</div>
+
+</div>
+
+<p>
+${team ? team.name : "Unknown Team"}<br>
+${p.height||"—"} • ${p.weight||"—"} lbs<br>
+${p.hometown||"Hometown unknown"}<br>
+Previous: ${p.previous||"None listed"}
+</p>
+
+<button class="action delete"
+onclick="deleteItem('player',${p.id})">
+Delete Player
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+
+let gameSeason=document.getElementById("gameSeason");
+
+gameSeason.innerHTML='<option value="">Select Season</option>';
+
+seasons.forEach(s=>{
+gameSeason.innerHTML+=`
+<option value="${s.id}">${s.name}</option>
+`;
+});
+
+
+let homeTeam=document.getElementById("homeTeam");
+let awayTeam=document.getElementById("awayTeam");
+
+homeTeam.innerHTML='<option value="">Home Team</option>';
+awayTeam.innerHTML='<option value="">Away Team</option>';
+
+teams.forEach(t=>{
+
+homeTeam.innerHTML+=`
+<option value="${t.id}">${t.name}</option>
+`;
+
+awayTeam.innerHTML+=`
+<option value="${t.id}">${t.name}</option>
+`;
+
+});
+
+
+let gameList=document.getElementById("gameList");
+
+gameList.innerHTML="";
+
+if(games.length===0){
+
+gameList.innerHTML='<div class="empty">No games scheduled.</div>';
+
+}else{
+
+games.forEach(g=>{
+
+let season=seasons.find(s=>s.id===g.seasonId);
+let home=teams.find(t=>t.id===g.homeId);
+let away=teams.find(t=>t.id===g.awayId);
+
+gameList.innerHTML+=`
+<div class="game">
+
+<strong>
+${season ? season.name : "Unknown Season"}
+</strong>
+
+<div class="score">
+${home ? home.name : "Home"} ${g.homeScore}
+-
+${g.awayScore} ${away ? away.name : "Away"}
+</div>
+
+<div>
+Week: ${g.week||"—"}<br>
+Date: ${g.date||"—"}<br>
+Time: ${g.time||"—"}<br>
+Venue: ${g.venue||"—"}
+</div>
+
+<button class="action delete"
+onclick="deleteItem('game',${g.id})">
+Delete Game
+</button>
+
+</div>
+`;
+
+});
+
+}
+
+
+let statPlayer=document.getElementById("statPlayer");
+
+statPlayer.innerHTML='<option value="">Select Player</option>';
+
+players.forEach(p=>{
+
+statPlayer.innerHTML+=`
+<option value="${p.id}">#${p.number||""} ${p.name}</option>
+`;
+
+});
+
+
+let passing=0;
+let rushing=0;
+let receiving=0;
+let tacklesTotal=0;
+
+stats.forEach(s=>{
+
+if(s.type==="Passing") passing+=s.value;
+if(s.type==="Rushing") rushing+=s.value;
+if(s.type==="Receiving") receiving+=s.value;
+if(s.type==="Tackle") tacklesTotal+=s.value;
+
+});
+
+document.getElementById("passingYards").textContent=passing;
+document.getElementById("rushingYards").textContent=rushing;
+document.getElementById("receivingYards").textContent=receiving;
+document.getElementById("tackles").textContent=tacklesTotal;
+
+
+let statLog=document.getElementById("statLog");
+
+statLog.innerHTML="";
+
+stats.slice().reverse().forEach(s=>{
+
+let player=players.find(p=>p.id===s.playerId);
+
+statLog.innerHTML+=`
+<div class="player">
+<strong>${player ? player.name : "Unknown Player"}</strong><br>
+${s.type}: ${s.value}
+</div>
+`;
+
+});
+
+}
+
+render();
+
+</script>
+
+</body>
+  </html>

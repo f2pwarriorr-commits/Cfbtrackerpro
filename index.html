@@ -1,2 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#070c17">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
 
-        
+<title>MaskedKilla's CFB Tracker</title>
+
+<style>
+:root{
+  --bg:#070c17;
+  --panel:#101827;
+  --panel2:#151f31;
+  --border:#26344d;
+  --text:#f5f7fb;
+  --muted:#9ba8bc;
+  --primary:#3b82f6;
+  --primary2:#2563eb;
+  --danger:#ef4444;
+  --success:#22c55e;
+  --warning:#f59e0b;
+  --radius:14px;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+  min-height:100vh;
+}
+
+button,
+input,
+select,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:#090f1c;
+  border-bottom:1px solid var(--border);
+  padding:12px;
+}
+
+.header-inner{
+  max-width:1100px;
+  margin:auto;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+.brand{
+  font-weight:800;
+  font-size:18px;
+}
+
+.header-actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:14px;
+}
+
+#nav{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:10px 0;
+  margin-bottom:12px;
+  scrollbar-width:none;
+}
+
+#nav::-webkit-scrollbar{
+  display:none;
+}
+
+#nav button{
+  flex:0 0 auto;
+  background:var(--panel);
+  color:var(--muted);
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:9px 13px;
+}
+
+#nav button.active{
+  background:var(--primary);
+  border-color:var(--primary);
+  color:white;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+h1,h2,h3,h4{
+  margin-top:0;
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  margin-bottom:14px;
+}
+
+.card h3{
+  margin-bottom:12px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+
+@media(max-width:700px){
+  .grid,
+  .grid-3{
+    grid-template-columns:1fr;
+  }
+}
+
+label{
+  display:block;
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:5px;
+}
+
+input,
+select,
+textarea{
+  width:100%;
+  background:#0b1220;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px;
+  outline:none;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+  border-color:var(--primary);
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+.form-group{
+  margin-bottom:10px;
+}
+
+.actions{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+button,
+.btn{
+  background:var(--primary);
+  color:white;
+  border:0;
+  border-radius:10px;
+  padding:10px 13px;
+}
+
+button:hover{
+  filter:brightness(1.08);
+}
+
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.btn-secondary{
+  background:#27344b;
+}
+
+.btn-danger{
+  background:var(--danger);
+}
+
+.btn-success{
+  background:var(--success);
+}
+
+.btn-warning{
+  background:var(--warning);
+  color:#111;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.small{
+  font-size:13px;
+}
+
+.empty{
+  color:var(--muted);
+  text-align:center;
+  padding:25px 10px;
+  border:1px dashed var(--border);
+  border-radius:12px;
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+}
+
+@media(max-width:800px){
+  .stats-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+.stat-box{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:15px;
+  text-align:center;
+}
+
+.stat-box .num{
+  font-size:26px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.playercard{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:9px;
+}
+
+.playercard h4{
+  margin-bottom:5px;
+}
+
+.flex{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.photo,
+.team-logo{
+  width:55px;
+  height:55px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#0b1220;
+  border:1px solid var(--border);
+}
+
+.team-logo{
+  object-fit:contain;
+  padding:4px;
+}
+
+.score{
+  font-size:28px;
+  font-weight:900;
+  margin:8px 0;
+}
+
+.pill{
+  display:inline-block;
+  background:#24324a;
+  border-radius:999px;
+  padding:3px 8px;
+  font-size:11px;
+}
+
+.live{
+  border-color:var(--success);
+}
+
+.warning-box{
+  border:1px solid var(--warning);
+  background:#241b09;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:600px;
+}
+
+th,
+td{
+  text-align:left;
+  padding:9px;
+  border-bottom:1px solid var(--border);
+}
+
+th{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.search{
+  margin-bottom:10px;
+}
+
+.hero{
+  padding:20px;
+  background:linear-gradient(135deg,#101827,#17243a);
+  border:1px solid var(--border);
+  border-radius:16px;
+  margin-bottom:14px;
+}
+
+.hero h1{
+  margin-bottom:6px;
+}
+
+.section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+hr{
+  border:0;
+  border-top:1px solid var(--border);
+  margin:14px 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">🏈 MaskedKilla's CFB Tracker</div>
+
+    <div class="header-actions">
+      <button id="undoButton" class="btn-secondary" onclick="undo()" disabled>Undo</button>
+      <button class="btn-secondary" onclick="exportBackup()">Backup</button>
+      <button class="btn-secondary" onclick="document.getElementById('importFile').click()">Import</button>
+      <input id="importFile" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <nav id="nav"></nav>
+
+  <!-- HOME -->
+  <section id="home" class="page active">
+
+    <div class="hero">
+      <h1>🏈 College Football Tracker</h1>
+      <div class="muted">
+        Track seasons, teams, rosters, games, play-by-play, player statistics, lineups, accomplishments and awards.
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="num" id="countSeasons">0</div>
+        <div class="muted">Seasons</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countTeams">0</div>
+        <div class="muted">Teams</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countPlayers">0</div>
+        <div class="muted">Players</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countGames">0</div>
+        <div class="muted">Games</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countPlays">0</div>
+        <div class="muted">Plays</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countStats">0</div>
+        <div class="muted">Stats</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countAccomplishments">0</div>
+        <div class="muted">Accomplishments</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="num" id="countAwards">0</div>
+        <div class="muted">Awards</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SEASONS -->
+  <section id="seasons" class="page">
+
+    <div class="card">
+      <h3>Add Season</h3>
+
+      <div class="grid">
+        <div class="form-group">
+          <label>Season Year</label>
+          <input id="seasonYear" type="number" placeholder="2026">
+        </div>
+
+        <div class="form-group">
+          <label>Season Name</label>
+          <input id="seasonName" placeholder="2026 Season">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button onclick="addSeason()">Add Season</button>
+        <button class="btn-secondary" onclick="clearForm('season')">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h3>Seasons</h3>
+      </div>
+
+      <div id="seasonList"></div>
+    </div>
+
+  </section>
+
+  <!-- TEAMS -->
+  <section id="teams" class="page">
+
+    <div class="card">
+      <h3>Add Team</h3>
+
+      <div class="grid">
+
+        <div class="form-group">
+          <label>Team Name</label>
+          <input id="teamName" placeholder="North Dakota State">
+        </div>
+
+        <div class="form-group">
+          <label>Short Name</label>
+          <input id="teamShort" placeholder="NDSU">
+        </div>
+
+        <div class="form-group">
+          <label>Conference</label>
+          <input id="teamConference" placeholder="Missouri Valley">
+        </div>
+
+        <div class="form-group">
+          <label>Level</label>
+          <select id="teamLevel">
+            <option value="FBS">FBS</option>
+            <option value="FCS">FCS</option>
+            <option value="D2">Division II</option>
+            <option value="D3">Division III</option>
+            <option value="NAIA">NAIA</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Team Color</label>
+          <input id="teamColor" placeholder="Green and Gold">
+        </div>
+
+        <div class="form-group">
+          <label>Stadium</label>
+          <input id="teamStadium" placeholder="Fargodome">
+        </div>
+
+        <div class="form-group">
+          <label>Logo URL</label>
+          <input id="teamLogo" placeholder="https://...">
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button onclick="addTeam()">Add Team</button>
+        <button class="btn-secondary" onclick="clearForm('team')">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Teams</h3>
+      <input class="search" id="teamSearch" placeholder="Search teams..." oninput="renderTeams()">
+      <div id="teamList"></div>
+    </div>
+
+  </section>
+
+  <!-- ROSTER -->
+  <section id="roster" class="page">
+
+    <div class="card">
+      <h3>Add Player</h3>
+
+      <div class="grid">
+
+        <div class="form-group">
+          <label>Season</label>
+          <select id="playerSeason" onchange="populateTeamSelect('playerTeam',this.value)"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Team</label>
+          <select id="playerTeam"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Jersey Number</label>
+          <input id="playerNumber" placeholder="12">
+        </div>
+
+        <div class="form-group">
+          <label>Name</label>
+          <input id="playerName" placeholder="Player Name">
+        </div>
+
+        <div class="form-group">
+          <label>Position</label>
+          <input id="playerPosition" placeholder="QB">
+        </div>
+
+        <div class="form-group">
+          <label>Class</label>
+          <input id="playerClass" placeholder="Junior">
+        </div>
+
+        <div class="form-group">
+          <label>Height</label>
+          <input id="playerHeight" placeholder="6'2">
+        </div>
+
+        <div class="form-group">
+          <label>Weight</label>
+          <input id="playerWeight" placeholder="205">
+        </div>
+
+        <div class="form-group">
+          <label>Hometown</label>
+          <input id="playerHometown" placeholder="Fargo, ND">
+        </div>
+
+        <div class="form-group">
+          <label>Previous School</label>
+          <input id="playerPrevious" placeholder="Previous School">
+        </div>
+
+        <div class="form-group">
+          <label>Photo URL</label>
+          <input id="playerPhoto" placeholder="https://...">
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button onclick="addPlayer()">Add Player</button>
+        <button class="btn-secondary" onclick="clearForm('player')">Clear</button>
+      </div>
+    </div>
+
+    <div class="card">
+
+      <div class="section-title">
+        <h3 id="rosterHeading">All Players</h3>
+      </div>
+
+      <div class="grid">
+
+        <div>
+          <label>Season</label>
+          <select id="rosterSeason" onchange="populateTeamSelect('rosterTeam',this.value,true);renderRoster()"></select>
+        </div>
+
+        <div>
+          <label>Team</label>
+          <select id="rosterTeam" onchange="renderRoster()"></select>
+        </div>
+
+      </div>
+
+      <input class="search" id="rosterSearch" placeholder="Search roster..." oninput="renderRoster()">
+
+      <div id="rosterList"></div>
+
+    </div>
+
+  </section>
+
+  <!-- GAMES -->
+  <section id="games" class="page">
+
+    <div class="card">
+      <h3>Add Game</h3>
+
+      <div class="grid">
+
+        <div class="form-group">
+          <label>Season</label>
+          <select id="gameSeason"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Home Team</label>
+          <select id="gameHome"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Away Team</label>
+          <select id="gameAway"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input id="gameDate" type="date">
+        </div>
+
+        <div class="form-group">
+          <label>Time</label>
+          <input id="gameTime" type="time">
+        </div>
+
+        <div class="form-group">
+          <label>Week</label>
+          <input id="gameWeek" type="number" placeholder="1">
+        </div>
+
+        <div class="form-group">
+          <label>Venue</label>
+          <input id="gameVenue" placeholder="Stadium">
+        </div>
+
+        <div class="form-group">
+          <label>Home Score</label>
+          <input id="gameHomeScore" type="number" value="0">
+        </div>
+
+        <div class="form-group">
+          <label>Away Score</label>
+          <input id="gameAwayScore" type="number" value="0">
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select id="gameStatus">
+            <option value="Scheduled">Scheduled</option>
+            <option value="Live">Live</option>
+            <option value="Final">Final</option>
+            <option value="Postponed">Postponed</option>
+            <option value="Canceled">Canceled</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="actions">
+        <button onclick="addGame()">Add Game</button>
+        <button class="btn-secondary" onclick="clearForm('game')">Clear</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <h3>Games</h3>
+
+      <div class="grid">
+
+        <div>
+          <label>Season</label>
+          <select id="gameFilterSeason" onchange="populateTeamSelect('gameFilterTeam',this.value,true);renderGames()"></select>
+        </div>
+
+        <div>
+          <label>Team</label>
+          <select id="gameFilterTeam" onchange="renderGames()"></select>
+        </div>
+
+      </div>
+
+      <div id="gameList"></div>
+
+    </div>
+
+  </section>
+
+  <!-- PLAY BY PLAY -->
+  <section id="plays" class="page">
+
+    <div class="card">
+
+      <h3>Record Play</h3>
+
+      <div class="warning-box">
+        For a completed pass, choose the quarterback as Player 1 and the receiver as Player 2.
+      </div>
+
+      <div class="grid">
+
+        <div class="form-group">
+          <label>Game</label>
+          <select id="playGame" onchange="syncPlayTeams()"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Team</label>
+          <select id="playTeam" onchange="populatePlayPlayers()"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Player 1</label>
+          <select id="playPlayer"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Player 2 / Receiver</label>
+          <select id="playPlayer2"></select>
+        </div>
+
+        <div class="form-group">
+          <label>Down</label>
+          <select id="playDown">
+            <option value="1st">1st</option>
+            <option value="2nd">2nd</option>
+            <option value="3rd">3rd</option>
+            <option value="4th">4th</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Play Type</label>
+          <select id="playType">
+            <option value="Pass">Pass</option>
+            <option value="Rush">Rush</option>
+            <option value="Reception">Reception</option>
+            <option value="Sack">Sack</option>
+            <option value="Interception">Interception</option>
+            <option value="Fumble">Fumble</option>
+            <option value="Field Goal">Field Goal</option>
+            <option value="Extra Point">Extra Point</option>
+            <option value="Punt">Punt</option>
+            <option value="Defense">Defense</option>
+            <option value="Penalty">Penalty</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Yards</label>
+          <input id="playYards" type="number" value="0">
+        </div>
+
+        <div class="form-group">
+          <label>Result</label>
+          <select id="playResult">
+            <option value="Complete">Complete</option>
+            <option value="Incomplete">Incomplete</option>
+            <option value="Touchdown">Touchdown</option>
+            <option value="Run">Run</option>
+            <option value="First Down">First Down</option>
+            <option value="Interception">Interception</option>
+            <option value="Fumble">Fumble</option>
+            <option value="Made">Made</option>
+            <option value="Missed">Missed</option>
+            <option value="Good">Good</option>
+            <option value="No Good">No Good</option>
+            <option value="Punt">Punt</option>
+            <option value="Tackle">Tackle</option>
+            <option value="Sack">Sack</option>
+            <option value="Penalty">Penalty</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="playDescription" placeholder="Example: QB hits WR for a 25-yard touchdown pass."></textarea>
+      </div>
+
+      <div class="actions">
+        <button onclick="addPlay()">Record Play</button>
+        <button class="btn-secondary" onclick="clearForm('play')">Clear</button>
+      </div>
+
+    </div>
+
+    <div class="card">
+
+      <h3>Play-by-Play</h3>
+
+      <div id="liveGameStats"></div>
+
+      <div id="playList"></div>
+
+    </div>
+
+  </section>
+
+  <!-- STATS -->
+  <section id="stats" class="page">
+
+    <div class="card">
+
+      <h3>Manual Stat Entry</h3>
+
+      <div class="grid">
+
+        <div>
+          <label>Season</label>
+          <select id="statSeason"></select>
+        </div>
+
+        <div>
+          <label>Team</label>
+          <select id="statTeam" onchange="populatePlayerSelect('statPlayer',val('statSeason'),this.value)"></select>
+        </div>
+
+        <div>
+          <label>Player</label>
+          <select id="statPlayer"></select>
+        </div>
+
+        <div>
+          <label>Stat</label>
+          <select id="statType">
+            <option value="pass_yds">Passing Yards</option>
+            <option value="pass_td">Passing TD</option>
+            <option value="pass_int">Interceptions Thrown</option>
+            <option value="completions">Completions</option>
+            <option value="pass_att">Pass Attempts</option>
+            <option value="rush_yds">Rushing Yards</option>
+            <option value="rush_td">Rushing TD</option>
+            <option value="rush_att">Rushing Attempts</option>
+            <option value="rec">Receptions</option>
+            <option value="rec_yds">Receiving Yards</option>
+            <option value="rec_td">Receiving TD</option>
+            <option value="tackles">Tackles</option>
+            <option value="tfl">Tackles For Loss</option>
+            <option value="sacks">Sacks</option>
+            <option value="def_int">Defensive Interceptions</option>
+            <option value="pd"

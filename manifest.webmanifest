@@ -1,0 +1,25 @@
+{
+  "name": "Gridiron Stats Center",
+  "short_name": "Gridiron Stats",
+  "description": "College football player, team, season, game and statistical tracking.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f18",
+  "theme_color": "#101827",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

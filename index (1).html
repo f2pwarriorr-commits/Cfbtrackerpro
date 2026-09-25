@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gridiron Stats Center</title>
+<style>
+:root{--bg:#0a0f18;--panel:#111a28;--panel2:#172235;--line:#26354b;--text:#f5f7fb;--muted:#91a0b5;--accent:#38bdf8;--accent2:#8b5cf6;--good:#22c55e;--bad:#ef4444;--warn:#f59e0b}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#162238 0,#0a0f18 42%);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}
+.top{position:sticky;top:0;z-index:20;background:rgba(10,15,24,.94);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.topin{max-width:1500px;margin:auto;padding:13px 18px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.brand{font-weight:900;font-size:21px;letter-spacing:.4px}.brand b{color:var(--accent)}
+.wrap{max-width:1500px;margin:auto;padding:18px}
+.nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}.nav button{white-space:nowrap;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-weight:800}.nav button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
+.page.hide{display:none}.card{background:linear-gradient(180deg,rgba(23,34,53,.95),rgba(17,26,40,.95));border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:15px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+h1,h2,h3{margin:0 0 10px}.muted{color:var(--muted)}.small{font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.wrap{padding:10px}.grid,.grid2{grid-template-columns:1fr}.topin{padding:11px}.brand{font-size:17px}}
+label{display:block;color:var(--muted);font-size:12px;font-weight:800;margin:0 0 6px;text-transform:uppercase;letter-spacing:.4px}
+input,select{width:100%;background:#0b1320;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:10px;outline:0}input:focus,select:focus{border-color:var(--accent)}
+.btn{border:0;border-radius:9px;padding:10px 13px;background:var(--accent);color:#03111b;font-weight:900}.btn.alt{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.btn.good{background:var(--good);color:#031109}.btn.bad{background:var(--bad);color:#fff}.btn.warn{background:var(--warn);color:#111}.btn.sm{padding:7px 10px;font-size:12px}
+.actions{display:flex;flex-wrap:wrap;gap:8px}.title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.kpi{background:#0d1625;border:1px solid var(--line);border-radius:13px;padding:14px}.kpi .n{font-size:26px;font-weight:950}.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800}
+.table{overflow:auto}.table table{width:100%;border-collapse:collapse;min-width:760px}.table th{font-size:11px;color:var(--muted);text-transform:uppercase;background:#0b1320}.table th,.table td{padding:10px;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left}.table tr:hover td{background:#152238}.rank{font-weight:950}.pill{display:inline-block;background:#21304a;border-radius:999px;padding:3px 7px;font-size:10px;font-weight:900}.empty{padding:25px;text-align:center;color:var(--muted)}
+.gamebar{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center;text-align:center}.score{font-size:46px;font-weight:950}.vs{color:var(--muted);font-weight:900}
+.entrygrid{display:grid;grid-template-columns:1.2fr 1.2fr repeat(4,1fr);gap:8px}@media(max-width:900px){.entrygrid{grid-template-columns:1fr 1fr}} 
+.statbuttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.statbuttons button{background:#1a2940;color:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 8px;font-weight:850}.statbuttons button:hover{border-color:var(--accent)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:center;justify-content:center;padding:15px}.modal.hide{display:none}.modalbox{width:min(720px,100%);max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}.close{float:right;border:0;background:none;color:#fff;font-size:25px}
+.notice{padding:11px;border:1px solid var(--line);background:#0b1422;border-radius:10px;color:var(--muted)}
+.tabs2{display:flex;gap:7px;overflow:auto;margin-bottom:12px}.tabs2 button{background:#0d1726;border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:9px 12px;font-weight:850}.tabs2 button.on{color:#fff;border-color:var(--accent);background:#12253b}
+hr{border:0;border-top:1px solid var(--line);margin:15px 0}.danger{color:#fecaca}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <div class="brand">GRIDIRON <b>STATS CENTER</b></div>
+  <div class="actions">
+    <button class="btn sm" onclick="openGame()">New Game</button>
+    <button class="btn alt sm" onclick="exportDB()">Export</button>
+    <button class="btn alt sm" onclick="document.getElementById('importer').click()">Import</button>
+    <input id="importer" type="file" accept=".json" style="display:none" onchange="importDB(event)">
+  </div>
+</div></header>
+
+<main class="wrap">
+<div class="nav">
+  <button class="on" data-page="home">Home</button><button data-page="tracker">Game Tracker</button>
+  <button data-page="stats">Stats Hub</button><button data-page="players">Players</button>
+  <button data-page="teams">Teams</button><button data-page="seasons">Seasons</button>
+  <button data-page="history">History</button>
+</div>
+
+<section id="home" class="page">
+  <div class="card"><div class="title"><div><h1>Football Statistics Center</h1><div class="muted">Season-based player, team and game tracking.</div></div><button class="btn" onclick="openSeason()">Create Season</button></div></div>
+  <div class="grid">
+    <div class="kpi"><div class="n" id="kSeasons">0</div><div class="l">Seasons</div></div>
+    <div class="kpi"><div class="n" id="kTeams">0</div><div class="l">Teams</div></div>
+    <div class="kpi"><div class="n" id="kPlayers">0</div><div class="l">Players</div></div>
+    <div class="kpi"><div class="n" id="kGames">0</div><div class="l">Games</div></div>
+  </div>
+  <div class="card"><div class="title"><h2>Current Season</h2><select id="homeSeason" onchange="setCurrentSeason(this.value)" style="max-width:240px"></select></div><div id="homeSummary"></div></div>
+</section>
+
+<section id="tracker" class="page hide">
+  <div id="noGame" class="card"><h2>No active game</h2><p class="notice">Create a game, choose the season and two teams, then enter player statistics.</p><button class="btn" onclick="openGame()">Start Game</button></div>
+  <div id="gameUI" class="hide">
+    <div class="card"><div class="gamebar"><div><b id="gHome">Home</b><div class="score" id="sHome">0</div></div><div><div class="vs">LIVE</div><div class="muted" id="gSeason">Season</div></div><div><b id="gAway">Away</b><div class="score" id="sAway">0</div></div></div><hr><div class="actions"><button class="btn alt" onclick="score(7,0)">Home TD +7</button><button class="btn alt" onclick="score(0,7)">Away TD +7</button><button class="btn alt" onclick="score(3,0)">Home FG +3</button><button class="btn alt" onclick="score(0,3)">Away FG +3</button><button class="btn bad" onclick="finishGame()">End & Save Game</button></div></div>
+    <div class="card"><div class="title"><h2>Stat Entry</h2><span class="pill" id="entrySeason"></span></div>
+      <div class="entrygrid">
+        <div><label>Team</label><select id="eTeam" onchange="fillPlayers()"></select></div>
+        <div><label>Player</label><select id="ePlayer"></select></div>
+        <div><label>Yards</label><input id="yards" type="number" value="0"></div>
+        <div><label>TD</label><input id="td" type="number" value="0"></div>
+        <div><label>Extra</label><input id="extra" type="number" value="0"></div>
+        <div style="display:flex;align-items:end"><button class="btn" style="width:100%" onclick="manualStat()">Add</button></div>
+      </div>
+      <hr>
+      <div class="tabs2" id="entryTabs">
+        <button class="on" onclick="entryMode('passing',this)">Passing</button><button onclick="entryMode('rushing',this)">Rushing</button><button onclick="entryMode('receiving',this)">Receiving</button><button onclick="entryMode('defense',this)">Defense</button>
+      </div>
+      <div id="entryHelp" class="notice">Select a player. Use the buttons below for quick stat entry. Yards/TD/Extra are used by the manual action.</div>
+      <br><div class="statbuttons" id="statButtons"></div>
+    </div>
+    <div class="card"><div class="title"><h2>Game Stat Log</h2><button class="btn alt sm" onclick="renderGameLog()">Refresh</button></div><div id="gameLog"></div></div>
+  </div>
+</section>
+
+<section id="stats" class="page hide">
+  <div class="card"><div class="title"><h2>Stats Hub</h2><div class="actions"><select id="statsSeason" onchange="renderStats()" style="width:180px"></select><select id="statsTeam" onchange="renderStats()" style="width:200px"></select><button class="btn alt" onclick="toggleStatsView()">Player / Team</button></div></div>
+    <div class="notice">Includes passing, rushing, receiving and defensive leaders. Completion %, passer rating, YPG and YPC are calculated automatically.</div>
+  </div>
+  <div id="playerStatsView">
+    <div class="card"><h2>Passing Leaders</h2><div class="table" id="passingTable"></div></div>
+    <div class="card"><h2>Rushing Leaders</h2><div class="table" id="rushingTable"></div></div>
+    <div class="card"><h2>Receiving Leaders</h2><div class="table" id="receivingTable"></div></div>
+    <div class="card"><h2>Defensive Leaders</h2><div class="table" id="defenseTable"></div></div>
+  </div>
+  <div id="teamStatsView" class="hide"><div class="card"><h2>Team Statistics</h2><div class="table" id="teamTable"></div></div></div>
+</section>
+
+<section id="players" class="page hide"><div class="card"><div class="title"><h2>Player Database</h2><button class="btn" onclick="openPlayer()">Add Player</button></div><input id="playerSearch" placeholder="Search name, team or position" oninput="renderPlayers()"><br><br><div id="playerList"></div></div></section>
+<section id="teams" class="page hide"><div class="card"><div class="title"><h2>Teams</h2><button class="btn" onclick="openTeam()">Add Team</button></div><div id="teamList"></div></div></section>
+<section id="seasons" class="page hide"><div class="card"><div class="title"><h2>Seasons</h2><button class="btn" onclick="openSeason()">Create Season</button></div><div id="seasonList"></div></div></section>
+<section id="history" class="page hide"><div class="card"><h2>Game History</h2><div id="historyList"></div></div></section>
+</main>
+
+<div class="modal hide" id="gameModal"><div class="modalbox"><button class="close" onclick="closeModal('gameModal')">×</button><h2>New Game</h2><div class="grid2"><div><label>Season</label><select id="mSeason"></select></div><div><label>Date</label><input id="mDate" type="date"></div><div><label>Home Team</label><select id="mHome"></select></div><div><label>Away Team</label><select id="mAway"></select></div></div><br><button class="btn" onclick="startGame()">Start Game</button></div></div>
+<div class="modal hide" id="playerModal"><div class="modalbox"><button class="close" onclick="closeModal('playerModal')">×</button><h2>Add Player</h2><div class="grid2"><div><label>Name</label><input id="pName"></div><div><label>Position</label><select id="pPos"><option>QB</option><option>HB</option><option>FB</option><option>WR</option><option>TE</option><option>OL</option><option>DL</option><option>LB</option><option>CB</option><option>S</option><option>DB</option><option>K</option><option>P</option></select></div><div><label>Jersey #</label><input id="pNum" type="number"></div><div><label>Team</label><select id="pTeam"></select></div></div><br><button class="btn" onclick="addPlayer()">Save Player</button></div></div>
+<div class="modal hide" id="teamModal"><div class="modalbox"><button class="close" onclick="closeModal('teamModal')">×</button><h2>Add Team</h2><label>Team Name</label><input id="tName"><br><br><button class="btn" onclick="addTeam()">Save Team</button></div></div>
+<div class="modal hide" id="seasonModal"><div class="modalbox"><button class="close" onclick="closeModal('seasonModal')">×</button><h2>Create Season</h2><div class="grid2"><div><label>Season Name</label><input id="seasonName" placeholder="Season 1"></div><div><label>Season Number</label><input id="seasonNum" type="number" min="1"></div></div><br><button class="btn" onclick="addSeason()">Create Season</button></div></div>
+
+<script>
+const KEY="gridiron_stats_center_v3";
+let db=JSON.parse(localStorage.getItem(KEY)||"null")||{currentSeason:"",seasons:[],teams:[],players:[],games:[],active:null};
+const statKeys=["passComp","passAtt","passYds","passTD","passINT","rushAtt","rushYds","rushTD","rushBTK","rec","recYds","recTD","drops","tackles","solo","tfl","sacks","defINT","defTD","ff","fr"];
+function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));renderAll()}
+function esc(x){return String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function blank(){let x={};statKeys.forEach(k=>x[k]=0);return x}
+function team(id){return db.teams.find(x=>x.id===id)}
+function player(id){return db.players.find(x=>x.id===id)}
+function season(id){return db.seasons.find(x=>x.id===id)}
+function sName(id){return season(id)?.name||"Season"}
+function tName(id){return team(id)?.name||"Free Agent"}
+function ps(p,seasonId){p.stats??={};p.stats[seasonId]??=blank();return p.stats[seasonId]}
+function gameStats(g,pid){g.playerStats??={};g.playerStats[pid]??=blank();return g.playerStats[pid]}
+function fmt(n){return Number(n||0).toLocaleString()}
+function pct(a,b){return b?(a/b*100).toFixed(1):"0.0"}
+function rating(s){if(!s.passAtt)return"0.0";let a=Math.max(0,Math.min(2.375,(s.passComp/s.passAtt-.3)*5));let b=Math.max(0,Math.min(2.375,(s.passYds/s.passAtt-3)*.25));let c=Math.max(0,Math.min(2.375,s.passTD/s.passAtt*20));let d=Math.max(0,Math.min(2.375,2.375-s.passINT/s.passAtt*25));return ((a+b+c+d)/6*100).toFixed(1)}
+function gamesForTeam(seasonId,teamId){return db.games.filter(g=>g.seasonId===seasonId&&(g.homeId===teamId||g.awayId===teamId)).length}
+function ypg(s,p){let n=gamesForTeam(currentStatsSeason(),p.teamId);return n?(s.rushYds/n).toFixed(1):"0.0"}
+function currentStatsSeason(){return document.getElementById("statsSeason")?.value||db.currentSeason}
+
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.querySelectorAll(".page").forEach(p=>p.classList.add("hide"));document.getElementById(b.dataset.page).classList.remove("hide");renderAll()});
+function closeModal(x){document.getElementById(x).classList.add("hide")}
+function openSeason(){document.getElementById("seasonName").value="";document.getElementById("seasonNum").value=(db.seasons.length+1);document.getElementById("seasonModal").classList.remove("hide")}
+function addSeason(){let n=document.getElementById("seasonName").value.trim()||`Season ${document.getElementById("seasonNum").value}`;let idd=id();db.seasons.push({id:idd,name:n,number:Number(document.getElementById("seasonNum").value)||db.seasons.length+1});db.currentSeason=idd;closeModal("seasonModal");save()}
+function setCurrentSeason(v){if(v){db.currentSeason=v;save()}}
+function renderSeasons(){let c=document.getElementById("seasonList");c.innerHTML=db.seasons.length?db.seasons.map(s=>`<div class="card" style="margin:0 0 8px"><div class="title"><div><b>${esc(s.name)}</b><div class="muted small">${gamesForSeason(s.id)} games</div></div><div class="actions"><button class="btn alt sm" onclick="setCurrentSeason('${s.id}')">Use Season</button><button class="btn bad sm" onclick="deleteSeason('${s.id}')">Delete</button></div></div></div>`).join(""):`<div class="empty">No seasons yet.</div>`}
+function gamesForSeason(id){return db.games.filter(g=>g.seasonId===id).length}
+function deleteSeason(id){if(db.active?.seasonId===id)return alert("End the active game first.");if(db.seasons.length===1)return alert("Keep at least one season.");if(!confirm("Delete this season and its saved games/stat totals?"))return;db.seasons=db.seasons.filter(s=>s.id!==id);db.games=db.games.filter(g=>g.seasonId!==id);db.players.forEach(p=>{if(p.stats)delete p.stats[id]});if(db.currentSeason===id)db.currentSeason=db.seasons[0].id;save()}
+
+function openTeam(){document.getElementById("tName").value="";document.getElementById("teamModal").classList.remove("hide")}
+function addTeam(){let n=document.getElementById("tName").value.trim();if(!n)return alert("Enter a team name.");db.teams.push({id:id(),name:n});closeModal("teamModal");save()}
+function renderTeams(){let c=document.getElementById("teamList");c.innerHTML=db.teams.length?db.teams.map(t=>`<div class="card" style="margin:0 0 8px"><div class="title"><div><b>${esc(t.name)}</b><div class="muted small">${db.players.filter(p=>p.teamId===t.id).length} players · ${db.games.filter(g=>g.homeId===t.id||g.awayId===t.id).length} games</div></div><button class="btn bad sm" onclick="deleteTeam('${t.id}')">Delete</button></div></div>`).join(""):`<div class="empty">No teams yet.</div>`}
+function deleteTeam(id){if(!confirm("Delete team? Players become free agents."))return;db.players.forEach(p=>{if(p.teamId===id)p.teamId=""});db.teams=db.teams.filter(t=>t.id!==id);save()}
+
+function openPlayer(){fillSelect("pTeam",db.teams,"Free Agent");document.getElementById("pName").value="";document.getElementById("pNum").value="";document.getElementById("playerModal").classList.remove("hide")}
+function fillSelect(id,arr,first){let e=document.getElementById(id);e.innerHTML=(first!==undefined?`<option value="">${first}</option>`:"")+arr.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}
+function addPlayer(){let n=document.getElementById("pName").value.trim();if(!n)return alert("Enter player name.");db.players.push({id:id(),name:n,position:document.getElementById("pPos").value,number:document.getElementById("pNum").value,teamId:document.getElementById("pTeam").value,stats:{}});closeModal("playerModal");save()}
+function renderPlayers(){let q=document.getElementById("playerSearch").value.toLowerCase();let a=db.players.filter(p=>(p.name+" "+tName(p.teamId)+" "+p.position).toLowerCase().includes(q));document.getElementById("playerList").innerHTML=a.length?a.map(p=>`<div class="card" style="margin:0 0 8px"><div class="title"><div><b>${esc(p.name)}</b> ${p.number?`<span class="pill">#${esc(p.number)}</span>`:""}<div class="muted">${esc(p.position)} · ${esc(tName(p.teamId))}</div></div><button class="btn bad sm" onclick="deletePlayer('${p.id}')">Delete</button></div></div>`).join(""):`<div class="empty">No players found.</div>`}
+function deletePlayer(id){if(confirm("Delete player?")){db.players=db.players.filter(p=>p.id!==id);save()}}
+
+function openGame(){if(db.seasons.length<1)return alert("Create a season first.");if(db.teams.length<2)return alert("Add at least two teams first.");fillSelect("mSeason",db.seasons);fillSelect("mHome",db.teams);fillSelect("mAway",db.teams);document.getElementById("mSeason").value=db.currentSeason;document.getElementById("mDate").value=new Date().toISOString().slice(0,10);if(db.teams[1])document.getElementById("mAway").value=db.teams[1].id;document.getElementById("gameModal").classList.remove("hide")}
+function startGame(){let seasonId=document.getElementById("mSeason").value,h=document.getElementById("mHome").value,a=document.getElementById("mAway").value;if(h===a)return alert("Choose different teams.");db.currentSeason=seasonId;db.active={id:id(),seasonId,date:document.getElementById("mDate").value||new Date().toISOString().slice(0,10),homeId:h,awayId:a,homeScore:0,awayScore:0,playerStats:{}};closeModal("gameModal");document.querySelector('[data-page="tracker"]').click();save()}
+function score(h,a){if(!db.active)return;db.active.homeScore+=h;db.active.awayScore+=a;save()}
+function fillPlayers(){if(!db.active)return;let tid=document.getElementById("eTeam").value;fillSelect("ePlayer",db.players.filter(p=>p.teamId===tid))}
+let mode="passing";
+const modes={
+passing:[["Completion","passComp"],["Attempt","passAtt"],["Pass Yards","passYds"],["Pass TD","passTD"],["Interception","passINT"]],
+rushing:[["Rush Attempt","rushAtt"],["Rush Yards","rushYds"],["Rush TD","rushTD"],["Broken Tackle","rushBTK"]],
+receiving:[["Reception","rec"],["Rec Yards","recYds"],["Rec TD","recTD"],["Drop","drops"]],
+defense:[["Tackle","tackles"],["Solo","solo"],["TFL","tfl"],["Sack","sacks"],["INT","defINT"],["Def TD","defTD"],["Forced Fumble","ff"],["Fumble Recovery","fr"]]
+};
+function entryMode(m,b){mode=m;document.querySelectorAll("#entryTabs button").forEach(x=>x.classList.remove("on"));b.classList.add("on");renderEntryButtons()}
+function renderEntryButtons(){document.getElementById("statButtons").innerHTML=modes[mode].map(([n,k])=>`<button onclick="quick('${k}')">+ ${n}</button>`).join("")}
+function selectedPlayer(){return player(document.getElementById("ePlayer").value)}
+function quick(k){if(!db.active)return;let p=selectedPlayer();if(!p)return alert("Select a player.");gameStats(db.active,p.id)[k]++;renderGameLog();save()}
+function manualStat(){if(!db.active)return;let p=selectedPlayer();if(!p)return alert("Select a player.");let s=gameStats(db.active,p.id),y=Number(document.getElementById("yards").value)||0,t=Number(document.getElementById("td").value)||0,e=Number(document.getElementById("extra").value)||0;if(mode==="passing"){s.passAtt++;s.passComp++;s.passYds+=y;s.passTD+=t;s.passINT+=e}else if(mode==="rushing"){s.rushAtt++;s.rushYds+=y;s.rushTD+=t;s.rushBTK+=e}else if(mode==="receiving"){s.rec++;s.recYds+=y;s.recTD+=t;s.drops+=e}else{s.tackles++;s.tfl+=y;s.sacks+=t;s.defINT+=e}document.getElementById("yards").value=0;document.getElementById("td").value=0;document.getElementById("extra").value=0;save()}
+function renderTracker(){let a=db.active;if(!a){document.getElementById("noGame").classList.remove("hide");document.getElementById("gameUI").classList.add("hide");return}document.getElementById("noGame").classList.add("hide");document.getElementById("gameUI").classList.remove("hide");document.getElementById("gHome").textContent=tName(a.homeId);document.getElementById("gAway").textContent=tName(a.awayId);document.getElementById("sHome").textContent=a.homeScore;document.getElementById("sAway").textContent=a.awayScore;document.getElementById("gSeason").textContent=sName(a.seasonId);document.getElementById("entrySeason").textContent=sName(a.seasonId);fillSelect("eTeam",[team(a.homeId),team(a.awayId)]);fillPlayers();renderEntryButtons();renderGameLog()}
+function renderGameLog(){if(!db.active)return;let rows=Object.entries(db.active.playerStats||{}).map(([pid,s])=>{let p=player(pid);if(!p)return"";return `<tr><td><b>${esc(p.name)}</b><div class="muted small">${esc(p.position)} · ${esc(tName(p.teamId))}</div></td><td>${s.passComp}/${s.passAtt} · ${fmt(s.passYds)} yds · ${s.passTD} TD</td><td>${s.rushAtt} · ${fmt(s.rushYds)} yds · ${s.rushTD} TD</td><td>${s.rec} · ${fmt(s.recYds)} yds · ${s.recTD} TD</td><td>${s.tackles} TAK · ${s.sacks} SCK · ${s.defINT} INT</td></tr>`}).join("");document.getElementById("gameLog").innerHTML=rows?`<div class="table"><table><tr><th>Player</th><th>Passing</th><th>Rushing</th><th>Receiving</th><th>Defense</th></tr>${rows}</table></div>`:`<div class="empty">No stats entered yet.</div>`}
+function finishGame(){if(!db.active)return;if(!confirm("Save this game and add its statistics to the season totals?"))return;let g=db.active;Object.entries(g.playerStats).forEach(([pid,gs])=>{let p=player(pid);if(!p)return;let s=ps(p,g.seasonId);statKeys.forEach(k=>s[k]+=Number(gs[k]||0))});db.games.push({...g});db.active=null;save();alert("Game saved.")}
+function renderStats(){let sid=document.getElementById("statsSeason").value||db.currentSeason,tid=document.getElementById("statsTeam").value;let arr=db.players.filter(p=>!tid||p.teamId===tid);const rows=(type)=>arr.map(p=>({p,s:ps(p,sid)}));let a=rows().filter(x=>x.s.passAtt).sort((x,y)=>y.s.passYds-x.s.passYds);document.getElementById("passingTable").innerHTML=table(["Player","Team","COMP","ATT","COMP %","YDS","TD","INT","RATING"],a.map(x=>[`${esc(x.p.name)} <span class="muted small">${esc(x.p.position)}</span>`,esc(tName(x.p.teamId)),x.s.passComp,x.s.passAtt,pct(x.s.passComp,x.s.passAtt)+"%",fmt(x.s.passYds),x.s.passTD,x.s.passINT,rating(x.s)]));a=rows().filter(x=>x.s.rushAtt).sort((x,y)=>y.s.rushYds-x.s.rushYds);document.getElementById("rushingTable").innerHTML=table(["Player","Team","ATT","YDS","TD","YPG","BTK"],a.map(x=>[esc(x.p.name),esc(tName(x.p.teamId)),x.s.rushAtt,fmt(x.s.rushYds),x.s.rushTD,ypg(x.s,x.p),x.s.rushBTK]));a=rows().filter(x=>x.s.rec).sort((x,y)=>y.s.recYds-x.s.recYds);document.getElementById("receivingTable").innerHTML=table(["Player","Team","REC","YDS","TD","YPC","DROPS"],a.map(x=>[esc(x.p.name),esc(tName(x.p.teamId)),x.s.rec,fmt(x.s.recYds),x.s.recTD,x.s.rec?(x.s.recYds/x.s.rec).toFixed(1):"0.0",x.s.drops]));a=rows().filter(x=>x.s.tackles||x.s.solo||x.s.tfl||x.s.sacks||x.s.defINT||x.s.defTD||x.s.ff||x.s.fr).sort((x,y)=>y.s.tackles-x.s.tackles);document.getElementById("defenseTable").innerHTML=table(["Player","Team","TAK","SOLO","TFL","SACKS","INT","TD","FF","FR","DEF"],a.map(x=>[esc(x.p.name),esc(tName(x.p.teamId)),x.s.tackles,x.s.solo,x.s.tfl,x.s.sacks,x.s.defINT,x.s.defTD,x.s.ff,x.s.fr,x.s.defTD]));renderTeamStats(sid,tid)}
+function table(head,rows){if(!rows.length)return`<div class="empty">No statistics recorded.</div>`;return`<table><tr>${head.map(x=>`<th>${x}</th>`).join("")}</tr>${rows.map((r,i)=>`<tr>${r.map((x,j)=>`<td class="${j===0?'rank':''}">${j===0?`<span class="muted">#${i+1}</span> `:""}${x}</td>`).join("")}</tr>`).join("")}</table>`}
+function renderTeamStats(sid,tid){let teams=db.teams.filter(t=>!tid||t.id===tid);let rows=teams.map(t=>{let psx=db.players.filter(p=>p.teamId===t.id),s=blank();psx.forEach(p=>{let x=ps(p,sid);statKeys.forEach(k=>s[k]+=x[k])});let games=gamesForTeam(sid,t.id);return [esc(t.name),games,s.passYds,s.passTD,s.rushYds,s.rushTD,s.recYds,s.recTD,s.tackles,s.sacks,s.defINT]});document.getElementById("teamTable").innerHTML=table(["Team","GP","PASS YDS","PASS TD","RUSH YDS","RUSH TD","REC YDS","REC TD","TAK","SACKS","INT"],rows)}
+let teamView=false;function toggleStatsView(){teamView=!teamView;document.getElementById("playerStatsView").classList.toggle("hide",teamView);document.getElementById("teamStatsView").classList.toggle("hide",!teamView)}
+function renderHistory(){let a=[...db.games].reverse();document.getElementById("historyList").innerHTML=a.length?a.map(g=>`<div class="card" style="margin:0 0 8px"><div class="title"><div><b>${esc(tName(g.homeId))} ${g.homeScore} — ${g.awayScore} ${esc(tName(g.awayId))}</b><div class="muted small">${esc(sName(g.seasonId))} · ${esc(g.date)}</div></div></div></div>`).join(""):`<div class="empty">No completed games.</div>`}
+function exportDB(){let b=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="gridiron-stats-data.json";a.click();URL.revokeObjectURL(u)}
+function importDB(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!x.seasons||!x.teams||!x.players)throw 0;db=x;save();alert("Imported successfully.")}catch{alert("Invalid stats file.")}};r.readAsText(f)}
+function populateFilters(){fillSelect("statsSeason",db.seasons);document.getElementById("statsSeason").value=db.currentSeason;document.getElementById("statsTeam").innerHTML='<option value="">All Teams</option>'+db.teams.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}
+function renderHome(){document.getElementById("kSeasons").textContent=db.seasons.length;document.getElementById("kTeams").textContent=db.teams.length;document.getElementById("kPlayers").textContent=db.players.length;document.getElementById("kGames").textContent=db.games.length;fillSelect("homeSeason",db.seasons);document.getElementById("homeSeason").value=db.currentSeason;let sid=db.currentSeason;let games=db.games.filter(g=>g.seasonId===sid);document.getElementById("homeSummary").innerHTML=`<div class="grid"><div class="kpi"><div class="n">${games.length}</div><div class="l">Games Played</div></div><div class="kpi"><div class="n">${db.teams.length}</div><div class="l">Teams</div></div><div class="kpi"><div class="n">${db.players.length}</div><div class="l">Players</div></div><div class="kpi"><div class="n">${esc(sName(sid))}</div><div class="l">Active Season</div></div></div>`}
+function renderAll(){renderHome();renderSeasons();renderTeams();renderPlayers();renderTracker();populateFilters();renderStats();renderHistory()}
+if(!db.seasons.length){let sid=id();db.seasons=[{id:sid,name:"Season 1",number:1}];db.currentSeason=sid}
+renderAll();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(console.error);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "MaskedKilla's CFB Tracker",
+  "short_name": "CFB Tracker",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#070c17",
+  "theme_color": "#070c17",
+  "description": "College football seasons, teams, rosters, games, play-by-play and player statistics tracker."
+}
